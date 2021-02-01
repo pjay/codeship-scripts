@@ -17,6 +17,7 @@ ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:="1.5.2"}
 ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT:="9333"}
 ELASTICSEARCH_DIR=${ELASTICSEARCH_DIR:="$HOME/el"}
 ELASTICSEARCH_PLUGINS=${ELASTICSEARCH_PLUGINS:=""}
+ELASTICSEARCH_DL_SELFHOSTED_URL="https://exts-test.s3.eu-central-1.amazonaws.com/elasticsearch/elasticsearch-6.4.1.tar.gz"
 
 # The download location of version 5.x and above, and 2.x follows a different URL structure than 1.x.
 # Make sure to use Oracle JDK 8 for Elasticsearch 5.x and above - run the following commands in your setup steps:
@@ -44,7 +45,10 @@ set -e
 CACHED_DOWNLOAD="${HOME}/cache/elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz"
 
 mkdir -p "${ELASTICSEARCH_DIR}"
-wget --continue --retry-on-http-error=404 --no-http-keep-alive --output-document "${CACHED_DOWNLOAD}" "${ELASTICSEARCH_DL_URL}"
+wget --continue --retry-on-http-error=404 --no-http-keep-alive --output-document "${CACHED_DOWNLOAD}" "${ELASTICSEARCH_DL_URL}" || true
+if [ ! -f "${CACHED_DOWNLOAD}" ]; then
+  wget --continue --output-document "${CACHED_DOWNLOAD}" "${ELASTICSEARCH_DL_SELFHOSTED_URL}"
+fi
 tar -xaf "${CACHED_DOWNLOAD}" --strip-components=1 --directory "${ELASTICSEARCH_DIR}"
 
 echo "http.port: ${ELASTICSEARCH_PORT}" >> ${ELASTICSEARCH_DIR}/config/elasticsearch.yml
